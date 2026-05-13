@@ -1,0 +1,14 @@
+{
+  "name": "e2ee-chat",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mobile": "cd mobile && npm run start",
+    "seed": "cd backend && npm run seed",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ../mobile && npm install"
+  },
+  "dependencies": {
+    "expo": "^55.0.23"
+  }
+}

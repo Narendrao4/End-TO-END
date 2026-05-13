@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: e2ee-chat-mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: e2ee-chat-backend
+    ports:
+      - '4000:4000'
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongodb:27017/e2ee-chat
+      - JWT_ACCESS_SECRET=change-this-access-secret-in-production
+      - JWT_REFRESH_SECRET=change-this-refresh-secret-in-production
+      - JWT_ACCESS_EXPIRY=15m
+      - JWT_REFRESH_EXPIRY=7d
+      - CORS_ORIGIN=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: e2ee-chat-frontend
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
