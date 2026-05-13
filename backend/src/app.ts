@@ -1,8 +1,9 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { env, isAllowedOrigin } from './config/env';
 import { connectDB, getDbStatus, isDbConnected } from './config/db';
 import { authRoutes } from './routes/auth.routes';
@@ -114,10 +115,25 @@ export async function buildApp() {
   return app;
 }
 
-// Default export for Vercel: initializes DB + builds Fastify server
-const appPromise = (async () => {
-  await connectDB().catch((err) => console.error('DB connection failed:', err));
-  return buildApp();
-})();
+// Default export for Vercel: a request handler function (not a Promise)
+let cachedApp: FastifyInstance | null = null;
 
-export default appPromise;
+async function getApp(): Promise<FastifyInstance> {
+  if (cachedApp) return cachedApp;
+  await connectDB().catch((err) => console.error('DB connection failed:', err));
+  cachedApp = await buildApp();
+  await cachedApp.ready();
+  return cachedApp;
+}
+
+export default function handler(req: IncomingMessage, res: ServerResponse) {
+  getApp()
+    .then((app) => {
+      app.routing(req, res);
+    })
+    .catch((err) => {
+      console.error('App init error:', err);
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: 'Server initialization failed' }));
+    });
+}
