@@ -4,7 +4,7 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import { env, isAllowedOrigin } from './config/env';
-import { getDbStatus, isDbConnected } from './config/db';
+import { connectDB, getDbStatus, isDbConnected } from './config/db';
 import { authRoutes } from './routes/auth.routes';
 import { usersRoutes } from './routes/users.routes';
 import { friendsRoutes } from './routes/friends.routes';
@@ -113,3 +113,11 @@ export async function buildApp() {
 
   return app;
 }
+
+// Default export for Vercel: initializes DB + builds Fastify server
+const appPromise = (async () => {
+  await connectDB().catch((err) => console.error('DB connection failed:', err));
+  return buildApp();
+})();
+
+export default appPromise;
