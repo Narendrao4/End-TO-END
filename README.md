@@ -131,6 +131,30 @@ docker-compose up --build
 Frontend: http://localhost:3000
 Backend API: http://localhost:4000
 
+## Vercel Deployment
+
+Deploy the web app from the repo root with `vercel.json`. Add production
+secrets in Vercel Project Settings -> Environment Variables, not in Git.
+
+Use `backend/.env.vercel.example` as the template. Your MongoDB Atlas URI must
+include the app database name:
+
+```text
+MONGODB_URI=mongodb+srv://<db-user>:<db-password>@<cluster-host>/e2ee-chat?retryWrites=true&w=majority&appName=<app-name>
+JWT_ACCESS_SECRET=<long-random-access-secret>
+JWT_REFRESH_SECRET=<long-random-refresh-secret>
+CORS_ORIGIN=https://end-to-end-wheat.vercel.app
+NODE_ENV=production
+```
+
+After redeploying, check:
+
+```text
+https://end-to-end-wheat.vercel.app/backend/api/health
+```
+
+The database status should be `connected`.
+
 ## Test Users
 
 After running `npm run seed` in the backend:
