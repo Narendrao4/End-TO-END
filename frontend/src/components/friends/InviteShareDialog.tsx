@@ -27,6 +27,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { buildInviteUrl } from '@/lib/appUrl';
+import { getErrorMessage } from '@/lib/errorMessage';
 import type { InviteLink } from '@/types';
 
 interface Props {
@@ -89,8 +90,8 @@ export function InviteShareDialog({ open, onOpenChange }: Props) {
       const { data } = await api.post('/invite/create', { expiresInHours });
       setInviteLinks((prev) => [data, ...prev]);
       toast.success('Invite link created!');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to create invite link');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to create invite link'));
     } finally {
       setIsCreating(false);
     }

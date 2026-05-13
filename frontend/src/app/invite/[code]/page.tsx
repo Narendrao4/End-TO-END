@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2, UserPlus, Check, Lock, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { getErrorMessage } from '@/lib/errorMessage';
 import type { User } from '@/types';
 
 interface InviteInfo {
@@ -48,8 +49,8 @@ export default function InvitePage() {
       try {
         const { data } = await api.get(`/invite/info/${code}`);
         setInviteInfo(data);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Invalid or expired invite link');
+      } catch (err) {
+        setError(getErrorMessage(err, 'Invalid or expired invite link'));
       } finally {
         setIsLoading(false);
       }
@@ -71,8 +72,8 @@ export default function InvitePage() {
       setAccepted(true);
       toast.success('You are now friends!');
       setTimeout(() => router.push('/dashboard'), 1500);
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to accept invite');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to accept invite'));
     } finally {
       setIsAccepting(false);
     }

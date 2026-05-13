@@ -12,6 +12,7 @@ import { Loader2, Lock, Eye, EyeOff, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -63,8 +64,8 @@ export default function LoginPage() {
       }
 
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Login failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Login failed'));
     } finally {
       setIsSubmitting(false);
     }

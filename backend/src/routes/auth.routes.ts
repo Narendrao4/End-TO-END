@@ -33,7 +33,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/api/auth',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60, // 7 days
       });
 
@@ -59,7 +59,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/api/auth',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
 
@@ -178,7 +178,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/api/auth',
+        path: '/',
         maxAge: 7 * 24 * 60 * 60,
       });
 
@@ -200,7 +200,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       // Clear cookie
-      reply.clearCookie('refreshToken', { path: '/api/auth' });
+      reply.clearCookie('refreshToken', { path: '/' });
       return reply.send({ message: 'Logged out' });
     }
   );
@@ -211,7 +211,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     { preHandler: [authMiddleware] },
     async (request: FastifyRequest, reply: FastifyReply) => {
       await authService.logoutAll(request.userId);
-      reply.clearCookie('refreshToken', { path: '/api/auth' });
+      reply.clearCookie('refreshToken', { path: '/' });
       return reply.send({ message: 'All sessions invalidated' });
     }
   );

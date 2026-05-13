@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Check, X, Loader2, Inbox, SendHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/errorMessage';
 import type { User } from '@/types';
 
 interface Props {
@@ -47,8 +48,8 @@ export function FriendRequestsDialog({ open, onOpenChange }: Props) {
     try {
       await acceptRequest(requestId);
       toast.success('Friend request accepted!');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed'));
     } finally {
       setProcessingId(null);
     }
@@ -59,8 +60,8 @@ export function FriendRequestsDialog({ open, onOpenChange }: Props) {
     try {
       await rejectRequest(requestId);
       toast.success('Request rejected');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed'));
     } finally {
       setProcessingId(null);
     }
@@ -71,8 +72,8 @@ export function FriendRequestsDialog({ open, onOpenChange }: Props) {
     try {
       await cancelRequest(requestId);
       toast.success('Request cancelled');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed'));
     } finally {
       setProcessingId(null);
     }

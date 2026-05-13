@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
 import { env, isAllowedOrigin } from './config/env';
+import { getDbStatus, isDbConnected } from './config/db';
 import { authRoutes } from './routes/auth.routes';
 import { usersRoutes } from './routes/users.routes';
 import { friendsRoutes } from './routes/friends.routes';
@@ -39,6 +40,21 @@ export async function buildApp() {
     secret: env.JWT_ACCESS_SECRET, // cookie signing secret
   });
 
+  app.addHook('preHandler', async (request, reply) => {
+    const pathname = request.url.split('?')[0];
+    const isApiRequest = pathname.startsWith('/api/') || pathname.startsWith('/backend/api/');
+    const isHealthCheck = pathname === '/api/health' || pathname === '/backend/api/health';
+
+    if (!isApiRequest || isHealthCheck || request.method === 'OPTIONS') return;
+    if (isDbConnected()) return;
+
+    return reply.status(503).send({
+      error: 'Database is not connected. Set MONGODB_URI in Vercel Environment Variables and redeploy.',
+      statusCode: 503,
+      database: getDbStatus(),
+    });
+  });
+
   // Error handler
   app.setErrorHandler((error: Error & { validation?: unknown; statusCode?: number }, request, reply) => {
     if (error instanceof AppError) {
@@ -56,6 +72,22 @@ export async function buildApp() {
       });
     }
 
+    const errorName = (error as { name?: string }).name || '';
+    const errorMessage = error.message || '';
+    if (
+      errorName.includes('Mongo') ||
+      errorName.includes('Mongoose') ||
+      errorMessage.includes('buffering timed out') ||
+      errorMessage.includes('ECONNREFUSED')
+    ) {
+      console.error('Database error:', error);
+      return reply.status(503).send({
+        error: 'Database is not reachable. Check MONGODB_URI in Vercel Environment Variables and redeploy.',
+        statusCode: 503,
+        database: getDbStatus(),
+      });
+    }
+
     console.error('Unhandled error:', error);
     return reply.status(500).send({
       error: 'Internal server error',
@@ -64,7 +96,10 @@ export async function buildApp() {
   });
 
   async function registerApiRoutes(basePrefix: string) {
-    app.get(`${basePrefix}/health`, async () => ({ status: 'ok' }));
+    app.get(`${basePrefix}/health`, async () => ({
+      status: isDbConnected() ? 'ok' : 'degraded',
+      database: getDbStatus(),
+    }));
     await app.register(authRoutes, { prefix: `${basePrefix}/auth` });
     await app.register(usersRoutes, { prefix: `${basePrefix}/users` });
     await app.register(friendsRoutes, { prefix: `${basePrefix}/friends` });

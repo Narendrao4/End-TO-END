@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { buildInviteUrl, getAppBaseUrl } from '@/lib/appUrl';
+import { getErrorMessage } from '@/lib/errorMessage';
 import type { User } from '@/types';
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -90,8 +91,8 @@ export function UserSearchDialog({ open, onOpenChange }: Props) {
     try {
       await sendRequest(userId);
       toast.success('Friend request sent!');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to send request');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to send request'));
     } finally {
       setSendingTo(null);
     }
@@ -141,8 +142,8 @@ export function UserSearchDialog({ open, onOpenChange }: Props) {
       }
 
       setTimeout(() => setDirectSent(null), 3000);
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to send invite');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to send invite'));
     } finally {
       setIsSendingDirect(false);
     }

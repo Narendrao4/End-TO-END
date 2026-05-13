@@ -17,9 +17,16 @@ const corsOrigins = Array.from(
   ])
 );
 
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultMongoUri = isProduction ? '' : 'mongodb://localhost:27017/e2ee-chat';
+const rawMongoUri = (process.env.MONGODB_URI || '').trim();
+const productionLocalMongoUri =
+  isProduction && /^mongodb:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(rawMongoUri);
+const mongodbUri = productionLocalMongoUri ? '' : rawMongoUri || defaultMongoUri;
+
 export const env = {
   PORT: parseInt(process.env.PORT || '4000', 10),
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/e2ee-chat',
+  MONGODB_URI: mongodbUri,
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
   JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY || '15m',

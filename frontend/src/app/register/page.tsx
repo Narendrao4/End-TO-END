@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { Loader2, Lock, Eye, EyeOff, Key, Phone, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { getErrorMessage } from '@/lib/errorMessage';
 
 const registerSchema = z.object({
   username: z.string().min(3, 'At least 3 characters').max(30),
@@ -68,8 +69,8 @@ export default function RegisterPage() {
       }
 
       router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Registration failed');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Registration failed'));
     } finally {
       setIsSubmitting(false);
     }
