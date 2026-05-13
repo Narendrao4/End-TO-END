@@ -17,7 +17,8 @@ const corsOrigins = Array.from(
   ])
 );
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1' || Boolean(process.env.VERCEL_URL);
+const isProduction = process.env.NODE_ENV === 'production' || isVercel;
 const defaultMongoUri = isProduction ? '' : 'mongodb://localhost:27017/e2ee-chat';
 const rawMongoUri = (process.env.MONGODB_URI || '').trim();
 const productionLocalMongoUri =
@@ -33,7 +34,8 @@ export const env = {
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
   CORS_ORIGIN: corsOrigins[0] || 'http://localhost:3000',
   CORS_ORIGINS: corsOrigins,
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  IS_VERCEL: isVercel,
+  NODE_ENV: process.env.NODE_ENV || (isVercel ? 'production' : 'development'),
 };
 
 export function isAllowedOrigin(origin?: string): boolean {

@@ -135,6 +135,8 @@ Backend API: http://localhost:4000
 
 Deploy the web app from the repo root with `vercel.json`. Add production
 secrets in Vercel Project Settings -> Environment Variables, not in Git.
+Add these values for every Vercel environment you use, especially Preview
+deployments if you test preview URLs before promoting to Production.
 
 Use `backend/.env.vercel.example` as the template. Your MongoDB Atlas URI must
 include the app database name:

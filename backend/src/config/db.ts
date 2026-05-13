@@ -11,6 +11,10 @@ export function getDbStatus(): string {
 }
 
 export async function connectDB(): Promise<void> {
+  if (isDbConnected()) {
+    return;
+  }
+
   if (!env.MONGODB_URI) {
     console.error('MongoDB connection skipped: MONGODB_URI is not configured.');
     return;
@@ -24,7 +28,7 @@ export async function connectDB(): Promise<void> {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    if (env.NODE_ENV !== 'production') {
+    if (env.NODE_ENV !== 'production' && !env.IS_VERCEL) {
       process.exit(1);
     }
   }

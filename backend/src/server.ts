@@ -4,7 +4,10 @@ import { setupSocketIO } from './socket';
 import { env } from './config/env';
 
 async function start() {
-  await connectDB();
+  const dbPromise = connectDB();
+  if (!env.IS_VERCEL && env.NODE_ENV !== 'production') {
+    await dbPromise;
+  }
 
   const app = await buildApp();
 
