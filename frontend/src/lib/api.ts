@@ -1,7 +1,16 @@
 import axios from 'axios';
 import { reconnectSocket } from './socket';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+const defaultApiUrl =
+  process.env.NODE_ENV === 'production' ? '/backend' : 'http://localhost:4000';
+const configuredApiUrlIsLocalhost =
+  !!configuredApiUrl && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(configuredApiUrl);
+const API_URL = (
+  process.env.NODE_ENV === 'production' && configuredApiUrlIsLocalhost
+    ? defaultApiUrl
+    : configuredApiUrl || defaultApiUrl
+).replace(/\/+$/, '');
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,

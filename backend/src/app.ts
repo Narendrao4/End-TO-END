@@ -3,7 +3,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import cookie from '@fastify/cookie';
-import { env } from './config/env';
+import { env, isAllowedOrigin } from './config/env';
 import { authRoutes } from './routes/auth.routes';
 import { usersRoutes } from './routes/users.routes';
 import { friendsRoutes } from './routes/friends.routes';
@@ -21,13 +21,7 @@ export async function buildApp() {
   // Plugins
   await app.register(cors, {
     origin: (origin, cb) => {
-      // Allow requests with no origin (mobile apps, curl, etc)
-      if (!origin) return cb(null, true);
-      // Allow configured origins
-      if (env.CORS_ORIGINS.includes(origin)) return cb(null, true);
-      // Allow localhost/10.0.2.2 in development
-      if (env.NODE_ENV === 'development' && (origin.includes('localhost') || origin.includes('10.0.2.2') || origin.includes('127.0.0.1') || origin.includes('192.168.'))) return cb(null, true);
-      cb(new Error('Not allowed by CORS'), false);
+      cb(null, isAllowedOrigin(origin));
     },
     credentials: true,
   });
@@ -69,16 +63,18 @@ export async function buildApp() {
     });
   });
 
-  // Health check
-  app.get('/api/health', async () => ({ status: 'ok' }));
+  async function registerApiRoutes(basePrefix: string) {
+    app.get(`${basePrefix}/health`, async () => ({ status: 'ok' }));
+    await app.register(authRoutes, { prefix: `${basePrefix}/auth` });
+    await app.register(usersRoutes, { prefix: `${basePrefix}/users` });
+    await app.register(friendsRoutes, { prefix: `${basePrefix}/friends` });
+    await app.register(conversationsRoutes, { prefix: `${basePrefix}/conversations` });
+    await app.register(messagesRoutes, { prefix: `${basePrefix}/messages` });
+    await app.register(inviteRoutes, { prefix: `${basePrefix}/invite` });
+  }
 
-  // Routes
-  await app.register(authRoutes, { prefix: '/api/auth' });
-  await app.register(usersRoutes, { prefix: '/api/users' });
-  await app.register(friendsRoutes, { prefix: '/api/friends' });
-  await app.register(conversationsRoutes, { prefix: '/api/conversations' });
-  await app.register(messagesRoutes, { prefix: '/api/messages' });
-  await app.register(inviteRoutes, { prefix: '/api/invite' });
+  await registerApiRoutes('/api');
+  await registerApiRoutes('/backend/api');
 
   return app;
 }

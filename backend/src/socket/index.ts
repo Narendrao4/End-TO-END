@@ -4,7 +4,7 @@ import { verifyAccessToken } from '../utils/jwt';
 import { User } from '../models';
 import { Message } from '../models/Message';
 import { sendMessagePush } from '../services/push.service';
-import { env } from '../config/env';
+import { isAllowedOrigin } from '../config/env';
 
 // userId -> Set of socketIds
 const onlineUsers = new Map<string, Set<string>>();
@@ -30,11 +30,7 @@ export function setupSocketIO(server: http.Server): SocketIOServer {
     pingTimeout: 60000,
     cors: {
       origin: (origin, cb) => {
-        // Allow requests with no origin (mobile apps, React Native)
-        if (!origin) return cb(null, true);
-        if (env.CORS_ORIGINS.includes(origin)) return cb(null, true);
-        if (env.NODE_ENV === 'development' && (origin.includes('localhost') || origin.includes('10.0.2.2') || origin.includes('127.0.0.1') || origin.includes('192.168.'))) return cb(null, true);
-        cb(new Error('Not allowed by CORS'), false);
+        cb(null, isAllowedOrigin(origin));
       },
       methods: ['GET', 'POST'],
       credentials: true,

@@ -1,14 +1,36 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL?.trim();
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim();
 
-function resolveSocketUrl(): string {
-  if (SOCKET_URL) return SOCKET_URL;
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-    return `${protocol}://${window.location.hostname}:4000`;
+function normalizeUrl(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
+function isLocalhostUrl(url?: string): boolean {
+  return !!url && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(url);
+}
+
+function resolveApiBaseUrl(): string {
+  const defaultApiUrl =
+    process.env.NODE_ENV === 'production' ? '/backend' : 'http://localhost:4000';
+  if (process.env.NODE_ENV === 'production' && isLocalhostUrl(API_URL)) {
+    return defaultApiUrl;
   }
-  return 'http://localhost:4000';
+  return normalizeUrl(API_URL || defaultApiUrl);
+}
+
+function resolveSocketEndpoint(): { url: string; path?: string } {
+  if (!(process.env.NODE_ENV === 'production' && isLocalhostUrl(SOCKET_URL)) && SOCKET_URL) {
+    return { url: normalizeUrl(SOCKET_URL) };
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return {
+      url: typeof window !== 'undefined' ? window.location.origin : '',
+      path: '/backend/socket.io',
+    };
+  }
+  return { url: 'http://localhost:4000' };
 }
 
 let socket: Socket | null = null;
@@ -33,7 +55,7 @@ async function refreshAccessToken(): Promise<string | null> {
     if (!refreshToken) return null;
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const apiBase = resolveApiBaseUrl();
       const response = await fetch(`${apiBase}/api/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,7 +146,8 @@ export function connectSocket(token: string): Socket {
 
   currentToken = normalizedToken;
 
-  socket = io(resolveSocketUrl(), {
+  const endpoint = resolveSocketEndpoint();
+  const options: Parameters<typeof io>[1] = {
     auth: { token: normalizedToken },
     // Start with polling, then upgrade to websocket when available.
     transports: ['polling', 'websocket'],
@@ -135,7 +158,13 @@ export function connectSocket(token: string): Socket {
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     timeout: 10000,
-  });
+  };
+
+  if (endpoint.path) {
+    options.path = endpoint.path;
+  }
+
+  socket = io(endpoint.url, options);
 
   const activeSocket = socket;
 
