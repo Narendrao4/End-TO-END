@@ -30,6 +30,10 @@ function normalizeIncomingMessage(message: Message): Message {
 // Status events can arrive with either ID depending on timing.
 const messageIdAliases = new Map<string, string>();
 
+// Polling interval for message fetching (fallback when WebSocket is unavailable)
+let pollingInterval: ReturnType<typeof setInterval> | null = null;
+const POLL_INTERVAL_MS = 3000;
+
 interface ChatState {
   conversations: Conversation[];
   activeConversation: Conversation | null;
@@ -49,6 +53,8 @@ interface ChatState {
   removeOnlineUser: (userId: string) => void;
   setTyping: (conversationId: string, userId: string) => void;
   clearTyping: (conversationId: string) => void;
+  startPolling: () => void;
+  stopPolling: () => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -113,8 +119,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const decrypted = encryptedMessages.map((msg: Message) => {
       const normalizedMsg = normalizeIncomingMessage(msg);
       try {
-        // For messages I sent, decrypt with recipient public key.
-        // For messages I received, decrypt with sender public key.
         const keyForDecrypt =
           normalizedMsg.senderId === currentUserId
             ? otherParticipant?.publicKey
@@ -137,7 +141,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     });
 
-    set({ messages: decrypted });
+    // Merge: keep optimistic (temp_*) messages that haven't been persisted yet,
+    // then use server data for everything else (source of truth for statuses).
+    const existingOptimistic = get().messages.filter(
+      (m) => String(m._id).startsWith('temp_')
+    );
+    const serverIds = new Set(decrypted.map((m: Message) => m._id));
+    const pending = existingOptimistic.filter((m) => !serverIds.has(messageIdAliases.get(m._id) || ''));
+    set({ messages: [...decrypted, ...pending] });
   },
 
   sendMessage: async (text: string) => {
@@ -176,34 +187,36 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Show in UI INSTANTLY
     set({ messages: [...get().messages, optimisticMessage] });
 
-    // Emit socket relay INSTANTLY
-    let socket = getSocket();
-    if (!socket || !socket.connected) {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        socket = connectSocket(token);
+    // Try socket relay (best-effort, non-blocking)
+    try {
+      let socket = getSocket();
+      if (!socket || !socket.connected) {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          socket = connectSocket(token);
+        }
       }
-    }
 
-    if (socket && socket.connected) {
-      socket.emit('message:send', {
-        receiverId: recipient._id,
-        message: {
-          _id: optimisticId,
-          conversationId: conversation._id,
-          senderId: currentUserId!,
+      if (socket && socket.connected) {
+        socket.emit('message:send', {
           receiverId: recipient._id,
-          senderPublicKey: keyPair.publicKey,
-          encryptedPayload,
-          nonce,
-          messageType: 'text',
-          status: 'sent',
-          createdAt: now,
-          updatedAt: now,
-        },
-      });
-    } else {
-      console.warn('[SEND] Socket not connected!');
+          message: {
+            _id: optimisticId,
+            conversationId: conversation._id,
+            senderId: currentUserId!,
+            receiverId: recipient._id,
+            senderPublicKey: keyPair.publicKey,
+            encryptedPayload,
+            nonce,
+            messageType: 'text',
+            status: 'sent',
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+      }
+    } catch {
+      // Socket relay is best-effort; API save below is the source of truth
     }
 
     // Check for fresher recipient key in background (DB persistence only — doesn't block display).
@@ -415,5 +428,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const newMap = new Map(get().typingUsers);
     newMap.delete(conversationId);
     set({ typingUsers: newMap });
+  },
+
+  startPolling: () => {
+    if (pollingInterval) return;
+    pollingInterval = setInterval(async () => {
+      const { activeConversation, fetchMessages, fetchConversations } = get();
+      if (activeConversation) {
+        await fetchMessages(activeConversation._id).catch(() => {});
+      }
+      await fetchConversations().catch(() => {});
+    }, POLL_INTERVAL_MS);
+  },
+
+  stopPolling: () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
   },
 }));

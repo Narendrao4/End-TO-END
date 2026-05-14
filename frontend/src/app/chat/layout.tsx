@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useCallback, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useChatStore } from '@/store/chatStore';
 import { getSocket, onSocketChange } from '@/lib/socket';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import { cn } from '@/lib/utils';
 
 function normalizeId(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -22,6 +23,7 @@ export default function ChatLayout({
 }) {
   const { isAuthenticated, isLoading, checkAuth, user } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     checkAuth();
@@ -41,8 +43,12 @@ export default function ChatLayout({
   }, [user]);
 
   // Socket event listeners — re-registers on socket change (token refresh / reconnect)
+  // Also starts polling as a fallback for Vercel serverless (no persistent WebSocket)
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    // Always start polling as reliable fallback
+    useChatStore.getState().startPolling();
 
     function registerListeners() {
       const socket = getSocket();
@@ -147,6 +153,7 @@ export default function ChatLayout({
     return () => {
       cleanup();
       unsubSocketChange();
+      useChatStore.getState().stopPolling();
     };
   }, [isAuthenticated]);
 
@@ -160,10 +167,23 @@ export default function ChatLayout({
 
   if (!isAuthenticated) return null;
 
+  // On mobile: hide sidebar when viewing a conversation, hide chat when on /chat root
+  const isConversationOpen = pathname !== '/chat';
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      <ChatSidebar />
-      <main className="flex-1 flex flex-col">{children}</main>
+    <div className="flex h-[100dvh] overflow-hidden">
+      <div className={cn(
+        'md:block md:w-80 md:shrink-0',
+        isConversationOpen ? 'hidden' : 'w-full'
+      )}>
+        <ChatSidebar />
+      </div>
+      <main className={cn(
+        'flex-1 flex flex-col min-w-0',
+        isConversationOpen ? 'w-full' : 'hidden md:flex'
+      )}>
+        {children}
+      </main>
     </div>
   );
 }

@@ -141,7 +141,7 @@ function EncryptedMessageBubble({
         )}
         {!isMine && !isFirstInGroup && <div className="w-7 shrink-0" />}
 
-        <div className="max-w-[75%]">
+        <div className="max-w-[85%] sm:max-w-[75%]">
           {/* Main bubble with encrypted text */}
           <div
             className={cn(
@@ -394,25 +394,25 @@ export default function ConversationPage() {
     <TooltipProvider delayDuration={200}>
       <div className="flex flex-1 flex-col h-full bg-background">
         {/* ══ HEADER ══ */}
-        <div className="h-16 border-b bg-card/80 backdrop-blur-sm flex items-center gap-3 px-4 shrink-0">
-          <Link href="/chat" className="md:hidden">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <ArrowLeft className="h-5 w-5" />
+        <div className="h-14 sm:h-16 border-b bg-card/80 backdrop-blur-sm flex items-center gap-2 sm:gap-3 px-2 sm:px-4 shrink-0">
+          <Link href="/chat" className="md:hidden shrink-0">
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </Link>
-          <div className="relative">
-            <Avatar className="h-10 w-10 ring-2 ring-background">
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-semibold">
+          <div className="relative shrink-0">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-background">
+              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-semibold text-xs sm:text-sm">
                 {otherUser?.username?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
             {isOnline && (
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-card" />
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-emerald-500 border-2 border-card" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-sm truncate">{otherUser?.username || 'Chat'}</h2>
-            <p className="text-xs mt-0.5">
+            <h2 className="font-semibold text-xs sm:text-sm truncate">{otherUser?.username || 'Chat'}</h2>
+            <p className="text-[10px] sm:text-xs mt-0.5">
               {isTyping ? (
                 <span className="text-emerald-500 font-medium">typing...</span>
               ) : isOnline ? (
@@ -422,13 +422,13 @@ export default function ConversationPage() {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground"
+                  className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hidden sm:inline-flex"
                   onClick={() => setShowEmojiPicker(false)}
                 >
                   <Phone className="h-4 w-4" />
@@ -441,7 +441,7 @@ export default function ConversationPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground"
+                  className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hidden sm:inline-flex"
                   onClick={() => setShowEmojiPicker(false)}
                 >
                   <Video className="h-4 w-4" />
@@ -451,7 +451,7 @@ export default function ConversationPage() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground"><Info className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground"><Info className="h-4 w-4" /></Button>
               </TooltipTrigger>
               <TooltipContent>Contact info</TooltipContent>
             </Tooltip>
@@ -530,14 +530,14 @@ export default function ConversationPage() {
         </ScrollArea>
 
         {/* ══ COMPOSER ══ */}
-        <div className="border-t bg-card/80 backdrop-blur-sm px-4 py-3 shrink-0">
-          <div className="max-w-3xl mx-auto flex items-end gap-2">
+        <div className="border-t bg-card/80 backdrop-blur-sm px-2 sm:px-4 py-2 sm:py-3 shrink-0">
+          <div className="max-w-3xl mx-auto flex items-end gap-1 sm:gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 shrink-0 text-muted-foreground rounded-full"
+                  className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 text-muted-foreground rounded-full hidden sm:inline-flex"
                   onClick={() => setShowEmojiPicker(false)}
                 >
                   <Paperclip className="h-5 w-5" />
@@ -554,8 +554,8 @@ export default function ConversationPage() {
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                className="w-full resize-none rounded-3xl border border-input bg-background px-4 py-2.5 pr-12 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 max-h-[120px]"
-                style={{ minHeight: '40px' }}
+                className="w-full resize-none rounded-3xl border border-input bg-background px-3 sm:px-4 py-2 sm:py-2.5 pr-10 sm:pr-12 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 max-h-[120px]"
+                style={{ minHeight: '36px' }}
               />
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -594,7 +594,7 @@ export default function ConversationPage() {
               disabled={!messageText.trim() || isSending}
               size="icon"
               className={cn(
-                'h-10 w-10 shrink-0 rounded-full transition-all duration-200',
+                'h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full transition-all duration-200',
                 messageText.trim()
                   ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25'
                   : 'bg-muted text-muted-foreground'

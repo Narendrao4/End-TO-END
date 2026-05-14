@@ -122,10 +122,10 @@ export function ChatSidebar() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <aside className="w-80 border-r flex flex-col h-full bg-card">
+      <aside className="w-full md:w-80 border-r flex flex-col h-full bg-card">
         {/* ══ HEADER ══ */}
-        <div className="px-4 pt-4 pb-3">
-          <div className="flex items-center justify-between mb-3">
+        <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 sm:pb-3">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center">
                 <Target className="h-4 w-4 text-white" />

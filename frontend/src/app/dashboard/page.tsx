@@ -239,47 +239,47 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-black text-white relative">
       <GridBackground />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* ═══ HEADER ═══ */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-10"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-10"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/chat">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:border-red-900/50 transition-colors"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:border-red-900/50 transition-colors"
               >
-                <ArrowLeft className="h-5 w-5 text-zinc-400" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-400" />
               </motion.button>
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center">
-                  <Target className="h-5 w-5 text-white" />
+                <div className="h-7 w-7 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="text-lg sm:text-2xl font-bold tracking-tight">
                   End<span className="text-red-500">ToEnd</span>
                 </h1>
               </div>
-              <p className="text-xs text-zinc-500 mt-0.5 ml-11">Dashboard &middot; {user?.username}</p>
+              <p className="text-[10px] sm:text-xs text-zinc-500 mt-0.5 ml-9 sm:ml-11">Dashboard &middot; {user?.username}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 bg-zinc-900/80 border border-zinc-800 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-zinc-400">Live</span>
-              <span className="text-xs font-mono text-zinc-500">{formatDuration(elapsed)}</span>
+              <span className="text-[10px] sm:text-xs text-zinc-400">Live</span>
+              <span className="text-[10px] sm:text-xs font-mono text-zinc-500">{formatDuration(elapsed)}</span>
             </div>
             <Link href="/chat">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-colors"
               >
                 <MessageSquare className="h-4 w-4" />
                 Go to Chats
