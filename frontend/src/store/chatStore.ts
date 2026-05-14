@@ -34,6 +34,19 @@ const messageIdAliases = new Map<string, string>();
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
 const POLL_INTERVAL_MS = 3000;
 
+// Notification callback — set from UI layer to show toast for new messages
+let onNewMessageNotify: ((senderName: string, text: string, conversationId: string) => void) | null = null;
+
+export function setNewMessageNotifier(cb: typeof onNewMessageNotify) {
+  onNewMessageNotify = cb;
+}
+
+// Track message IDs we've already notified about to avoid duplicate toasts
+const notifiedMessageIds = new Set<string>();
+
+// Track last known message timestamps per conversation for polling notifications
+let lastKnownConversationTimestamps = new Map<string, string>();
+
 interface ChatState {
   conversations: Conversation[];
   activeConversation: Conversation | null;
@@ -67,6 +80,31 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   fetchConversations: async () => {
     const { data } = await api.get('/conversations');
+    const currentUserId = localStorage.getItem('currentUserId');
+    const activeConvId = get().activeConversation?._id;
+
+    // Check for new messages in non-active conversations (polling notification)
+    for (const conv of data as Conversation[]) {
+      if (conv._id === activeConvId) continue; // skip active conversation
+      const lastKnown = lastKnownConversationTimestamps.get(conv._id);
+      if (lastKnown && conv.lastMessageAt && conv.lastMessageAt > lastKnown) {
+        // New message in this conversation — find the other user
+        const sender = conv.participants?.find((p: User) => String(p._id) !== String(currentUserId));
+        if (sender && !notifiedMessageIds.has(`conv_${conv._id}_${conv.lastMessageAt}`)) {
+          notifiedMessageIds.add(`conv_${conv._id}_${conv.lastMessageAt}`);
+          onNewMessageNotify?.(sender.username, 'New message', conv._id);
+        }
+      }
+      lastKnownConversationTimestamps.set(conv._id, conv.lastMessageAt || '');
+    }
+
+    // Initialize timestamps on first load
+    if (lastKnownConversationTimestamps.size === 0) {
+      for (const conv of data as Conversation[]) {
+        lastKnownConversationTimestamps.set(conv._id, conv.lastMessageAt || '');
+      }
+    }
+
     set({ conversations: data });
   },
 
@@ -301,10 +339,38 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
     
     // If no active conversation or conversation doesn't match, refresh conversations list
-    // but don't add to current view
+    // but don't add to current view — show notification instead
     if (!conversation || normalizedMessage.conversationId !== conversation._id) {
       console.log('[RECEIVE] Message for different/inactive conversation, refreshing list');
       get().fetchConversations();
+
+      // Show notification toast for messages from other conversations
+      const currentUserId = localStorage.getItem('currentUserId');
+      if (String(normalizedMessage.senderId) !== String(currentUserId) && !notifiedMessageIds.has(normalizedMessage._id)) {
+        notifiedMessageIds.add(normalizedMessage._id);
+        // Try to find sender name from conversations list
+        const convos = get().conversations;
+        let senderName = 'Someone';
+        for (const c of convos) {
+          const sender = c.participants?.find((p: User) => String(p._id) === String(normalizedMessage.senderId));
+          if (sender) { senderName = sender.username; break; }
+        }
+        // Try to decrypt for preview
+        const keyPair = getStoredKeyPair();
+        let preview = 'New encrypted message';
+        if (keyPair && normalizedMessage.senderPublicKey) {
+          try {
+            preview = decryptMessage(
+              normalizedMessage.encryptedPayload,
+              normalizedMessage.nonce,
+              normalizedMessage.senderPublicKey,
+              keyPair.secretKey
+            );
+            if (preview.length > 50) preview = preview.slice(0, 50) + '…';
+          } catch { /* keep default */ }
+        }
+        onNewMessageNotify?.(senderName, preview, normalizedMessage.conversationId);
+      }
       return;
     }
     

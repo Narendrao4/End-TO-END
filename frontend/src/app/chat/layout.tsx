@@ -4,9 +4,12 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useChatStore } from '@/store/chatStore';
+import { setNewMessageNotifier } from '@/store/chatStore';
 import { getSocket, onSocketChange } from '@/lib/socket';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { MessageSquare } from 'lucide-react';
 
 function normalizeId(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -41,6 +44,23 @@ export default function ChatLayout({
       localStorage.setItem('currentUserId', user._id);
     }
   }, [user]);
+
+  // Register notification handler for new messages from other conversations
+  useEffect(() => {
+    setNewMessageNotifier((senderName, text, conversationId) => {
+      toast(senderName, {
+        description: text,
+        icon: <MessageSquare className="h-4 w-4 text-red-500" />,
+        position: 'top-center',
+        duration: 4000,
+        action: {
+          label: 'Open',
+          onClick: () => router.push(`/chat/${conversationId}`),
+        },
+      });
+    });
+    return () => setNewMessageNotifier(null);
+  }, [router]);
 
   // Socket event listeners — re-registers on socket change (token refresh / reconnect)
   // Also starts polling as a fallback for Vercel serverless (no persistent WebSocket)
