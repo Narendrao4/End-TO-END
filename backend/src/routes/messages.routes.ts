@@ -70,4 +70,34 @@ export async function messagesRoutes(fastify: FastifyInstance) {
       return reply.send(message);
     }
   );
+
+  // Bulk mark all messages in a conversation as delivered
+  fastify.patch(
+    '/conversation/:conversationId/delivered',
+    async (
+      request: FastifyRequest<{ Params: { conversationId: string } }>,
+      reply: FastifyReply
+    ) => {
+      const count = await messagesService.markConversationDelivered(
+        request.params.conversationId,
+        request.userId
+      );
+      return reply.send({ updated: count });
+    }
+  );
+
+  // Bulk mark all messages in a conversation as read
+  fastify.patch(
+    '/conversation/:conversationId/read',
+    async (
+      request: FastifyRequest<{ Params: { conversationId: string } }>,
+      reply: FastifyReply
+    ) => {
+      const count = await messagesService.markConversationRead(
+        request.params.conversationId,
+        request.userId
+      );
+      return reply.send({ updated: count });
+    }
+  );
 }

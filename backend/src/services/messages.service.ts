@@ -69,6 +69,31 @@ export class MessagesService {
     await message.save();
     return message;
   }
-}
 
+  // Bulk mark messages as delivered for a conversation
+  async markConversationDelivered(conversationId: string, userId: string) {
+    const result = await Message.updateMany(
+      {
+        conversationId,
+        receiverId: userId,
+        status: 'sent',
+      },
+      { status: 'delivered' }
+    );
+    return result.modifiedCount;
+  }
+
+  // Bulk mark messages as read for a conversation
+  async markConversationRead(conversationId: string, userId: string) {
+    const result = await Message.updateMany(
+      {
+        conversationId,
+        receiverId: userId,
+        status: { $in: ['sent', 'delivered'] },
+      },
+      { status: 'read' }
+    );
+    return result.modifiedCount;
+  }
+}
 export const messagesService = new MessagesService();

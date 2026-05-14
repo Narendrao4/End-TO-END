@@ -433,18 +433,30 @@ export const useChatStore = create<ChatState>((set, get) => ({
   startPolling: () => {
     if (pollingInterval) return;
     pollingInterval = setInterval(async () => {
-      const { activeConversation, fetchMessages, fetchConversations, conversations } = get();
+      const { activeConversation, fetchMessages, fetchConversations } = get();
       if (activeConversation) {
         await fetchMessages(activeConversation._id).catch(() => {});
+
+        // Mark all messages in active conversation as read via HTTP API
+        api.patch(`/messages/conversation/${activeConversation._id}/read`).catch(() => {});
       }
+
+      // Mark messages as delivered for ALL other conversations
+      const convos = get().conversations;
+      for (const conv of convos) {
+        if (conv._id !== activeConversation?._id) {
+          api.patch(`/messages/conversation/${conv._id}/delivered`).catch(() => {});
+        }
+      }
+
       await fetchConversations().catch(() => {});
 
       // Poll online status for all participants
       try {
         const currentUserId = localStorage.getItem('currentUserId');
         const allParticipantIds = new Set<string>();
-        const convos = get().conversations;
-        for (const conv of convos) {
+        const latestConvos = get().conversations;
+        for (const conv of latestConvos) {
           for (const p of conv.participants || []) {
             const pid = String((p as any)?._id || p);
             if (pid && pid !== currentUserId) allParticipantIds.add(pid);
