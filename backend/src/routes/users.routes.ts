@@ -3,6 +3,8 @@ import { usersService } from '../services/users.service';
 import { authMiddleware } from '../middleware/auth';
 import { searchUsersSchema } from '../validators/users.validator';
 import { registerPushToken, clearPushToken } from '../services/push.service';
+import { isUserOnline } from '../socket';
+import { User } from '../models';
 
 export async function usersRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', authMiddleware);
@@ -70,13 +72,11 @@ export async function usersRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'userIds array is required' });
       }
       // Check socket-based online status first
-      const { isUserOnline } = await import('../socket');
       const onlineMap: Record<string, boolean> = {};
       for (const id of userIds) {
         onlineMap[id] = isUserOnline(id);
       }
       // Fallback: check lastSeen within 2 minutes for users not tracked by socket
-      const User = (await import('../models')).User;
       const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
       const recentUsers = await User.find({
         _id: { $in: userIds.filter((id) => !onlineMap[id]) },
@@ -95,7 +95,6 @@ export async function usersRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/heartbeat',
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const User = (await import('../models')).User;
       await User.findByIdAndUpdate(request.userId, { lastSeen: new Date() });
       return reply.send({ success: true });
     }
