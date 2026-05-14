@@ -279,7 +279,7 @@ export function ChatSidebar() {
                       className={cn(
                         'flex items-center gap-3 w-full p-3 rounded-xl transition-all text-left group',
                         isActive
-                          ? 'bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-indigo-500/20'
+                          ? 'bg-gradient-to-r from-red-500/10 to-red-900/10 border border-red-500/20'
                           : 'hover:bg-muted/50'
                       )}
                     >
@@ -401,7 +401,7 @@ export function ChatSidebar() {
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar className="h-9 w-9">
-                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-xs font-semibold">
+                <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-900 text-white text-xs font-semibold">
                   {user?.username?.[0]?.toUpperCase() || '?'}
                 </AvatarFallback>
               </Avatar>

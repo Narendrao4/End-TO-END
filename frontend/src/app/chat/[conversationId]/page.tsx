@@ -134,7 +134,7 @@ function EncryptedMessageBubble({
       <div className="flex items-end gap-1.5">
         {!isMine && isFirstInGroup && (
           <Avatar className="h-7 w-7 mt-1 shrink-0">
-            <AvatarFallback className="text-[10px] bg-gradient-to-br from-violet-500 to-indigo-600 text-white">
+            <AvatarFallback className="text-[10px] bg-gradient-to-br from-red-600 to-red-900 text-white">
               {otherUser?.username?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -147,8 +147,8 @@ function EncryptedMessageBubble({
             className={cn(
               'px-3 py-2 shadow-sm',
               isMine
-                ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white'
-                : 'bg-card border border-border/50',
+                ? 'bg-gradient-to-br from-red-600 to-red-900 text-white'
+                : 'bg-zinc-900 border border-zinc-800/60',
               isMine
                 ? cn('rounded-2xl', isLastInGroup ? 'rounded-br-sm' : '')
                 : cn('rounded-2xl', isLastInGroup ? 'rounded-bl-sm' : '')
@@ -177,12 +177,12 @@ function EncryptedMessageBubble({
             <div className={cn(
               'mt-1 px-3 py-2 rounded-xl text-[13.5px] leading-relaxed whitespace-pre-wrap break-words animate-in fade-in slide-in-from-top-1 duration-200',
               isMine
-                ? 'bg-indigo-500/20 border border-indigo-400/30 text-foreground'
-                : 'bg-emerald-500/10 border border-emerald-400/30 text-foreground'
+                ? 'bg-red-500/15 border border-red-500/30 text-foreground'
+                : 'bg-zinc-800/50 border border-zinc-700/40 text-foreground'
             )}>
               <div className="flex items-center gap-1 mb-1">
-                <Eye className="h-3 w-3 text-emerald-500" />
-                <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Decrypted</span>
+                <Eye className="h-3 w-3 text-red-500" />
+                <span className="text-[10px] font-medium text-red-500 dark:text-red-400">Decrypted</span>
                 <span className="text-[9px] text-muted-foreground ml-auto">auto-hides in 20s</span>
               </div>
               <p>{decryptedText}</p>
@@ -202,8 +202,8 @@ function EncryptedMessageBubble({
                 className={cn(
                   'flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors',
                   isMine
-                    ? 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10'
-                    : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
+                    ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10'
+                    : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700/30'
                 )}
               >
                 <Eye className="h-2.5 w-2.5" />
@@ -215,8 +215,8 @@ function EncryptedMessageBubble({
                 className={cn(
                   'flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors',
                   isMine
-                    ? 'text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10'
-                    : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
+                    ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10'
+                    : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700/30'
                 )}
               >
                 <EyeOff className="h-2.5 w-2.5" />
@@ -359,7 +359,7 @@ export default function ConversationPage() {
       case 'delivered':
         return <CheckCheck className="h-3 w-3 text-white/60" />;
       case 'read':
-        return <CheckCheck className="h-3 w-3 text-sky-300" />;
+        return <CheckCheck className="h-3 w-3 text-red-400" />;
       default:
         return null;
     }
@@ -402,7 +402,7 @@ export default function ConversationPage() {
           </Link>
           <div className="relative shrink-0">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-background">
-              <AvatarFallback className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-semibold text-xs sm:text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-red-600 to-red-900 text-white font-semibold text-xs sm:text-sm">
                 {otherUser?.username?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
@@ -460,13 +460,13 @@ export default function ConversationPage() {
 
         {/* ══ MESSAGES ══ */}
         <ScrollArea className="flex-1">
-          <div className="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-muted/30 via-background to-background">
+          <div className="min-h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/10 via-background to-background">
             <div className="max-w-3xl mx-auto px-4 py-4 space-y-1">
               {/* E2EE banner */}
               <div className="flex justify-center mb-4">
-                <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-1.5">
-                  <Lock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                  <span className="text-[11px] text-amber-700 dark:text-amber-300 font-medium">
+                <div className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-1.5">
+                  <Lock className="h-3 w-3 text-red-600 dark:text-red-400" />
+                  <span className="text-[11px] text-red-700 dark:text-red-300 font-medium">
                     Messages are end-to-end encrypted
                   </span>
                 </div>
@@ -515,7 +515,7 @@ export default function ConversationPage() {
               {isTyping && (
                 <div className="flex justify-start mt-2">
                   <Avatar className="h-7 w-7 mt-1 mr-1.5 shrink-0">
-                    <AvatarFallback className="text-[10px] bg-gradient-to-br from-violet-500 to-indigo-600 text-white">
+                    <AvatarFallback className="text-[10px] bg-gradient-to-br from-red-600 to-red-900 text-white">
                       {otherUser?.username?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -596,7 +596,7 @@ export default function ConversationPage() {
               className={cn(
                 'h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full transition-all duration-200',
                 messageText.trim()
-                  ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25'
+                  ? 'bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white shadow-lg shadow-red-500/25'
                   : 'bg-muted text-muted-foreground'
               )}
             >
