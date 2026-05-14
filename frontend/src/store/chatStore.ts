@@ -114,13 +114,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Decrypt messages
     const currentUserId = localStorage.getItem('currentUserId');
     const otherParticipant = conversation.participants.find(
-      (p: User) => p._id !== currentUserId
+      (p: User) => String(p._id) !== String(currentUserId)
     );
     const decrypted = encryptedMessages.map((msg: Message) => {
       const normalizedMsg = normalizeIncomingMessage(msg);
       try {
         const keyForDecrypt =
-          normalizedMsg.senderId === currentUserId
+          String(normalizedMsg.senderId) === String(currentUserId)
             ? otherParticipant?.publicKey
             : normalizedMsg.senderPublicKey || otherParticipant?.publicKey;
 
@@ -159,7 +159,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Find the recipient
     const currentUserId = localStorage.getItem('currentUserId');
     const recipient = conversation.participants.find(
-      (p: User) => p._id !== currentUserId
+      (p: User) => String(p._id) !== String(currentUserId)
     );
     if (!recipient?.publicKey) return;
 
@@ -324,11 +324,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Decrypt the new message using the other user's public key
     const keyPair = getStoredKeyPair();
     const otherParticipant = conversation.participants.find(
-      (p: User) => p._id !== currentUserId
+      (p: User) => String(p._id) !== String(currentUserId)
     );
 
     const keyForDecrypt =
-      normalizedMessage.senderId === currentUserId
+      String(normalizedMessage.senderId) === String(currentUserId)
         ? otherParticipant?.publicKey
         : normalizedMessage.senderPublicKey || otherParticipant?.publicKey;
 
@@ -433,11 +433,40 @@ export const useChatStore = create<ChatState>((set, get) => ({
   startPolling: () => {
     if (pollingInterval) return;
     pollingInterval = setInterval(async () => {
-      const { activeConversation, fetchMessages, fetchConversations } = get();
+      const { activeConversation, fetchMessages, fetchConversations, conversations } = get();
       if (activeConversation) {
         await fetchMessages(activeConversation._id).catch(() => {});
       }
       await fetchConversations().catch(() => {});
+
+      // Poll online status for all participants
+      try {
+        const currentUserId = localStorage.getItem('currentUserId');
+        const allParticipantIds = new Set<string>();
+        const convos = get().conversations;
+        for (const conv of convos) {
+          for (const p of conv.participants || []) {
+            const pid = String((p as any)?._id || p);
+            if (pid && pid !== currentUserId) allParticipantIds.add(pid);
+          }
+        }
+        if (allParticipantIds.size > 0) {
+          const { data } = await api.post('/users/online-status', {
+            userIds: Array.from(allParticipantIds),
+          });
+          if (data?.online) {
+            const onlineIds = Object.entries(data.online)
+              .filter(([, v]) => v)
+              .map(([k]) => k);
+            get().setOnlineUsers(onlineIds);
+          }
+        }
+      } catch {
+        // Online status polling is best-effort
+      }
+
+      // Send heartbeat so server knows we're online
+      api.post('/users/heartbeat').catch(() => {});
     }, POLL_INTERVAL_MS);
   },
 

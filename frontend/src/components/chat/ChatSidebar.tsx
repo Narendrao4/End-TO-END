@@ -87,7 +87,7 @@ export function ChatSidebar() {
   };
 
   const getOtherUser = (conv: Conversation): User | undefined => {
-    return conv.participants.find((p) => p._id !== user?._id);
+    return conv.participants.find((p) => String(p._id) !== String(user?._id));
   };
 
   const handleLogout = async () => {

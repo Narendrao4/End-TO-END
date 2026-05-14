@@ -255,7 +255,7 @@ export default function ConversationPage() {
   const quickEmojis = ['😀', '😂', '😍', '👍', '🙏', '🔥', '🎉', '❤️', '😎', '🤝', '👀', '🥳'];
 
   const otherUser: User | undefined = activeConversation?.participants.find(
-    (p) => p._id !== user?._id
+    (p) => String(p._id) !== String(user?._id)
   );
   const isOnline = otherUser ? onlineUsers.has(otherUser._id) : false;
   const isTyping = activeConversation
@@ -482,12 +482,12 @@ export default function ConversationPage() {
               )}
 
               {messages.map((msg, idx) => {
-                const isMine = msg.senderId === user?._id;
+                const isMine = String(msg.senderId) === String(user?._id);
                 const showDate = shouldShowDateSeparator(messages, idx);
                 const prevMsg = idx > 0 ? messages[idx - 1] : null;
                 const nextMsg = idx < messages.length - 1 ? messages[idx + 1] : null;
-                const isFirstInGroup = !prevMsg || prevMsg.senderId !== msg.senderId || showDate;
-                const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+                const isFirstInGroup = !prevMsg || String(prevMsg.senderId) !== String(msg.senderId) || showDate;
+                const isLastInGroup = !nextMsg || String(nextMsg.senderId) !== String(msg.senderId);
 
                 return (
                   <div key={msg._id}>
